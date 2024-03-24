@@ -11,5 +11,5 @@ __pycache__/
 *.so
 .git/
 .DS_Store
-.build/
+build/
 VERSION
