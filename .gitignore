@@ -1,0 +1,15 @@
+__pycache__/
+.publish/
+.venv*
+.env
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.sql
+*.sqlite
+*.so
+.git/
+.DS_Store
+.build/
+VERSION
