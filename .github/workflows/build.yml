@@ -59,9 +59,7 @@ jobs:
           file: ./build/nginx-certbot/src/Dockerfile
           platforms: |
             linux/arm64
-            linux/arm/v7
             linux/amd64
-            linux/386
           tags: |
             eyalerknet/nginx-lua-certbot:latest
             eyalerknet/nginx-lua-certbot:${{ steps.version.outputs.version }}
