@@ -27,15 +27,15 @@ jobs:
     
       - name: Run Python script
         run: python create_nginx_lua_certbot_docker.py
-        
+
       - name: Get Version
         id: version
         run: |
           if [ -f "./build/VERSION" ]; then
-            echo "::set-output name=version_exists::true"
-            echo "::set-output name=version::$(cat ./build/VERSION)"
+            echo "version_exists=true" >> "$GITHUB_OUTPUT"
+            echo "version=$(cat ./build/VERSION)" >> "$GITHUB_OUTPUT"
           else
-            echo "::set-output name=version_exists::false"
+            echo "version_exists=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Set up QEMU
