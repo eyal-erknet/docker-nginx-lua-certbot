@@ -27,14 +27,7 @@ jobs:
     
       - name: Run Python script
         run: python create_nginx_lua_certbot_docker.py
-    
-      - name: Check if VERSION file exists
-        run: |
-          
-            echo "VERSION file does not exist. Exiting build."
-            exit 0
-          fi
-    
+        
       - name: Get Version
         id: version
         run: |
