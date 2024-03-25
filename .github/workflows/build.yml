@@ -55,8 +55,8 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          context: ./build/src
-          file: ./build/src/Dockerfile
+          context: ./build/nginx-certbot/src
+          file: ./build/nginx-certbot/src/Dockerfile
           platforms: |
             linux/arm64
             linux/arm/v7
