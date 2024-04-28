@@ -26,6 +26,9 @@ jobs:
         run: pip install -r requirements.txt
     
       - name: Run Python script
+        env:
+          NGINX_LUA_DOCKER_IMAGE_NAME: ${{ vars.NGINX_LUA_DOCKER_HUB_REPO }}
+          NGINX_CERTBOT_GIT_NAME: ${{ vars.NGINX_CERTBOT_GIT_NAME }}
         run: python create_nginx_lua_certbot_docker.py
 
       - name: Get Version

@@ -95,7 +95,7 @@ def parse_nginx_certbot_tag(tag):
     if match:
         return (match.group(1), match.group(2))
     else:
-        return None
+        return (None, None)
 
 def get_latest_tags(path):
     nginx_certbot_tags = get_git_repo_tags(path)
