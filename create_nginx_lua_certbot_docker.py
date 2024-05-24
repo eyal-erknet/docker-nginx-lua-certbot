@@ -18,6 +18,9 @@ NGINX_CERTBOT_DOCKERFILE_PATH = f'{NGINX_CERTBOT_SRC_PATH}/Dockerfile'
 MODIEFIED_DOCKERFILE_FROM_LINE_FORMAT = f'FROM {NGINX_LUA_DOCKER_IMAGE_NAME}:{{tag}}'
 NGINX_CERTBOT_GIT_TAG_PATTERN =  r'v([\d.]+)-nginx([\d.]+)'
 VERSION_PATH = f'{BUILD_PATH}/VERSION'
+EXTENSION_DOCKERFILE = 'extension.Dockerfile'
+
+VERSION_IGNORE_MINOR = (os.environ.get('VERSION_IGNORE_MINOR', 'TRUE').upper() == 'TRUE')
 
 docker_tags_cache = {}
 
@@ -85,9 +88,29 @@ def replace_first_from_line(dockerfile, from_line):
 
 def get_latest_nginx_lua_tag(nginx_version):
     tags = get_docker_tags(NGINX_LUA_DOCKER_IMAGE_NAME)
-    for tag in tags:
-        if ((tag.startswith(f'{nginx_version}-')) and (BASE_PLATFORM in tag)):
-            return tag
+    if (VERSION_IGNORE_MINOR):
+        nginx_version_major = nginx_version[:nginx_version.rindex('.')] if (nginx_version.count('.') == 2) else nginx_version
+        #nginx_version_minor = nginx_version[nginx_version.rindex('.')+1:] if (nginx_version.count('.') == 2) else None
+        current_minor_tag = None
+        result = None
+        for tag in tags:
+            if (tag.count('-') == 1):
+                tag_parts = tag.split('-')
+                if (tag_parts[1].startswith(BASE_PLATFORM)):
+                    tag_version = tag_parts[0]
+                    tag_version_major = tag_version[:tag_version.rindex('.')] if (tag_version.count('.') == 2) else tag_version
+                    if (tag_version_major == nginx_version_major):
+                        tag_version_minor = tag_version[tag_version.rindex('.')+1:] if (tag_version.count('.') == 2) else None
+                        if ((result is None) 
+                            or (current_minor_tag is None)
+                            or ((tag_version_minor is not None) and (int(tag_version_minor) > int(current_minor_tag)))):
+                            result = tag
+                            current_minor_tag = tag_version_minor
+        return result
+    else:
+        for tag in tags:
+            if ((tag.startswith(f'{nginx_version}-')) and (BASE_PLATFORM in tag) and (tag.count('-') == 1)):
+                return tag
     return None
 
 def parse_nginx_certbot_tag(tag):
@@ -105,18 +128,17 @@ def get_latest_tags(path):
             nginx_lua_tag = get_latest_nginx_lua_tag(nginx_version)
             if (nginx_lua_tag is not None):
                 return (nginx_certbot_tag, nginx_lua_tag)
-    raise Exception('Could not matching latest tags.')
+    raise Exception('Could not find matching latest tags.')
 
-def modify_nginx_certbot_tag(tag):
-    new_from_line = MODIEFIED_DOCKERFILE_FROM_LINE_FORMAT.format(tag=tag)
+def modify_nginx_certbot_dockerfile(nginx_lua_tag):
+    new_from_line = MODIEFIED_DOCKERFILE_FROM_LINE_FORMAT.format(tag=nginx_lua_tag)
     current_dockerfile = read_file(NGINX_CERTBOT_DOCKERFILE_PATH)
-    new_dockerfile = replace_first_from_line(current_dockerfile, new_from_line)
+    new_dockerfile = f'{replace_first_from_line(current_dockerfile, new_from_line)}\n{read_file(EXTENSION_DOCKERFILE)}'
     write_file(NGINX_CERTBOT_DOCKERFILE_PATH, new_dockerfile)
 
 def create_version_tag(nginx_certbot_tag, nginx_lua_tag):
-    nginx_version = parse_nginx_certbot_tag(nginx_certbot_tag)[1]
-    lua_sub_tag = nginx_lua_tag[len(nginx_version)+1:]
-    return f'{nginx_certbot_tag}-{lua_sub_tag}'
+    certbot_version = parse_nginx_certbot_tag(nginx_certbot_tag)[0]
+    return f'{certbot_version}-{nginx_lua_tag}'
 
 def get_my_latest_version():
     tags = get_docker_tags(MY_DOCKER_IMAGE_NAME)
@@ -131,7 +153,7 @@ if (__name__ == "__main__"):
     nginx_certbot_tag = clone_git_repo(NGINX_CERTBOT_GIT, NGINX_CERTBOT_PATH)
     nginx_certbot_tag, nginx_lua_tag = get_latest_tags(NGINX_CERTBOT_PATH)
     git_checkout_tag(NGINX_CERTBOT_PATH, nginx_certbot_tag)
-    modify_nginx_certbot_tag(nginx_lua_tag)
+    modify_nginx_certbot_dockerfile(nginx_lua_tag)
     my_latest_version = get_my_latest_version()
     build_version = create_version_tag(nginx_certbot_tag, nginx_lua_tag)
     if (my_latest_version != build_version):

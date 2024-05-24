@@ -5,6 +5,11 @@
 A combination of fabiocicerchia/nginx-lua and jonasal/nginx-certbot to provide nginx with both lua and certbot.  
 A new docker image is built automatically every day at 6 am UTC (if required).
 
+The following libraries are added to the image:
+- curl
+- lua-resty-openssl
+- lua-resty-http
+
 ## Docker Hub Repository
 
 You can find the Docker image on Docker Hub: [eyalerknet/nginx-lua-certbot](https://hub.docker.com/r/eyalerknet/nginx-lua-certbot).  
