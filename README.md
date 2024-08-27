@@ -9,6 +9,7 @@ The following libraries are added to the image:
 - curl
 - lua-resty-openssl
 - lua-resty-http
+- kubectl
 
 ## Docker Hub Repository
 
